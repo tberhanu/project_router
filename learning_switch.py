@@ -22,6 +22,7 @@ class LearningSwitch(api.Entity):
     someone would invent a helpful poem for solving that problem...
 
     """
+    table = {}
 
     def __init__(self):
         """
@@ -30,7 +31,7 @@ class LearningSwitch(api.Entity):
         You probably want to do something in this method.
 
         """
-        pass
+        # pass
 
     def handle_link_down(self, port):
         """
@@ -40,7 +41,10 @@ class LearningSwitch(api.Entity):
         valid here.
 
         """
-        pass
+        for src, value in self.table.items():
+            if value == port:
+                del self.table[src]
+        # pass
 
     def handle_rx(self, packet, in_port):
         """
@@ -51,6 +55,11 @@ class LearningSwitch(api.Entity):
         or flooding them.
 
         """
+
+        source = packet.src
+        destination = packet.dst
+        self.table[source] = in_port
+
 
         # The source of the packet can obviously be reached via the input port, so
         # we should "learn" that the source host is out that port.  If we later see
@@ -63,4 +72,11 @@ class LearningSwitch(api.Entity):
             return
 
         # Flood out all ports except the input port
-        self.send(packet, in_port, flood=True)
+        # self.send(packet, in_port, flood=True)
+
+
+        elif self.table.has_key(destination):
+            dest_port = self.table[destination]
+            self.send(packet, dest_port, flood=False)
+        else:
+            self.send(packet, in_port, flood=True)
